@@ -1,22 +1,17 @@
 <?php
+
 namespace Rorecek\Ulid;
 
 trait HasUlid
 {
-    protected static function boot()
+    protected static function bootHasUlid()
     {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (! $model->id) {
-                $model->id = \Ulid::generate();
-            }
-        });
-
         static::saving(function ($model) {
             $originalUlid = $model->getOriginal('id');
-            if ($originalUlid !== $model->id) {
+            if ($originalUlid && $originalUlid !== $model->id) {
                 $model->id = $originalUlid;
+            } else if (!$model->id && !$originalUlid) {
+                $model->id = \Ulid::generate();
             }
         });
     }
@@ -24,5 +19,15 @@ trait HasUlid
     public function getIncrementing()
     {
         return false;
+    }
+
+    /**
+     * Get the primary key type.
+     *
+     * @return string
+     */
+    public function getKeyType()
+    {
+        return 'string';
     }
 }
